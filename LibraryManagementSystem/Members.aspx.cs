@@ -186,6 +186,13 @@ namespace LibraryManagementSystem
             return isActive ? "Active" : "Inactive";
         }
 
+        // Added: icon helper for user status
+        protected string GetUserStatusIcon(object isActiveObj)
+        {
+            bool isActive = Convert.ToBoolean(isActiveObj);
+            return isActive ? "fas fa-user-check" : "fas fa-user-slash";
+        }
+
         protected string GetBorrowingStatusClass(object returnDateObj, object dueDateObj)
         {
             if (returnDateObj == DBNull.Value)
@@ -212,6 +219,34 @@ namespace LibraryManagementSystem
                         return "status-badge status-returned-late";
                 }
                 return "status-badge status-returned";
+            }
+        }
+
+        // Added: icon helper for borrowing status
+        protected string GetBorrowingStatusIcon(object returnDateObj, object dueDateObj)
+        {
+            if (returnDateObj == DBNull.Value)
+            {
+                if (dueDateObj != DBNull.Value)
+                {
+                    DateTime dueDate = Convert.ToDateTime(dueDateObj);
+                    if (dueDate < DateTime.Today)
+                        return "fas fa-exclamation-triangle"; // overdue
+                    else if (dueDate <= DateTime.Today.AddDays(3))
+                        return "fas fa-hourglass-half"; // due soon
+                }
+                return "fas fa-book-reader"; // active
+            }
+            else
+            {
+                DateTime returnDate = Convert.ToDateTime(returnDateObj);
+                if (dueDateObj != DBNull.Value)
+                {
+                    DateTime dueDate = Convert.ToDateTime(dueDateObj);
+                    if (returnDate > dueDate)
+                        return "fas fa-clock"; // returned late
+                }
+                return "fas fa-check-circle"; // returned
             }
         }
 

@@ -60,6 +60,15 @@ namespace LibraryManagementSystem
         protected global::System.Web.UI.WebControls.RequiredFieldValidator reqEmail;
 
         /// <summary>
+        /// regexEmail control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.RegularExpressionValidator regexEmail;
+
+        /// <summary>
         /// txtPassword control.
         /// </summary>
         /// <remarks>

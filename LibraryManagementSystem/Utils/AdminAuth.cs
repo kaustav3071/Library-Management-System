@@ -54,7 +54,11 @@ namespace LibraryManagementSystem.Utils
         {
             if (!IsAdminLoggedIn)
             {
-                HttpContext.Current.Response.Redirect("~/AdminLogin.aspx");
+                var ctx = HttpContext.Current;
+                var requestedUrl = ctx?.Request?.RawUrl ?? "~/Books.aspx";
+                string loginUrl = "~/AdminLogin.aspx?ReturnUrl=" + HttpUtility.UrlEncode(requestedUrl);
+                ctx.Response.Redirect(loginUrl, false);
+                ctx.ApplicationInstance.CompleteRequest();
             }
         }
     }

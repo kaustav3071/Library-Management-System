@@ -17,6 +17,7 @@ namespace LibraryManagementSystem
             if (!IsPostBack)
             {
                 LoadActiveBorrowings();
+                LoadStats();
             }
         }
 
@@ -36,6 +37,96 @@ namespace LibraryManagementSystem
             }
         }
 
+        private void LoadStats()
+        {
+            try
+            {
+                // Get borrowing statistics
+                DataTable borrowingStats = borrowingDAL.GetBorrowingStats();
+                if (borrowingStats.Rows.Count > 0)
+                {
+                    DataRow stats = borrowingStats.Rows[0];
+                    lblActiveBorrowings.Text = stats["ActiveBorrowings"].ToString();
+                    lblTotalBorrowings.Text = stats["TotalBorrowings"].ToString();
+                    lblReturnedBooks.Text = stats["ReturnedBooks"].ToString();
+                    lblOverdueBooks.Text = stats["OverdueBorrowings"].ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading stats: {ex.Message}");
+            }
+        }
+
+        protected void ddlStatusFilter_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string filterValue = ddlStatusFilter.SelectedValue;
+            LoadBorrowingsByStatus(filterValue);
+            
+            // Update section title based on filter
+            switch (filterValue)
+            {
+                case "all":
+                    lblSectionTitle.Text = "All Transactions";
+                    break;
+                case "active":
+                    lblSectionTitle.Text = "Active Borrowings";
+                    break;
+                case "returned":
+                    lblSectionTitle.Text = "Returned Books";
+                    break;
+                case "overdue":
+                    lblSectionTitle.Text = "Overdue Items";
+                    break;
+                default:
+                    lblSectionTitle.Text = "Transactions";
+                    break;
+            }
+        }
+
+        protected void btnRefreshData_Click(object sender, EventArgs e)
+        {
+            string filterValue = ddlStatusFilter.SelectedValue;
+            LoadBorrowingsByStatus(filterValue);
+            LoadStats();
+        }
+
+        private void LoadBorrowingsByStatus(string status)
+        {
+            try
+            {
+                DataTable borrowings;
+                
+                switch (status)
+                {
+                    case "all":
+                        borrowings = borrowingDAL.GetAllBorrowings();
+                        break;
+                    case "active":
+                        borrowings = borrowingDAL.GetActiveBorrowings();
+                        break;
+                    case "returned":
+                        borrowings = borrowingDAL.GetReturnedBorrowings();
+                        break;
+                    case "overdue":
+                        borrowings = borrowingDAL.GetOverdueBorrowings();
+                        break;
+                    default:
+                        borrowings = borrowingDAL.GetActiveBorrowings();
+                        break;
+                }
+                
+                gvActive.DataSource = borrowings;
+                gvActive.DataBind();
+                
+                System.Diagnostics.Debug.WriteLine($"Loaded {borrowings.Rows.Count} borrowings with status: {status}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading borrowings by status: {ex.Message}");
+            }
+        }
+
         protected void gvActive_RowCommand(object sender, System.Web.UI.WebControls.GridViewCommandEventArgs e)
         {
             if (e.CommandName == "Return")
@@ -47,7 +138,8 @@ namespace LibraryManagementSystem
                         if (borrowingDAL.ReturnBook(id, DateTime.Now))
                         {
                             System.Diagnostics.Debug.WriteLine($"Book returned successfully for borrowing ID: {id}");
-                            LoadActiveBorrowings(); // Refresh active borrowings
+                            LoadBorrowingsByStatus(ddlStatusFilter.SelectedValue); // Refresh based on current filter
+                            LoadStats(); // Refresh statistics
                         }
                         else
                         {
@@ -120,6 +212,33 @@ namespace LibraryManagementSystem
                         return "status-badge status-returned-late";
                 }
                 return "status-badge status-returned";
+            }
+        }
+
+        protected string GetBorrowingStatusIcon(object returnDateObj, object dueDateObj)
+        {
+            if (returnDateObj == DBNull.Value)
+            {
+                if (dueDateObj != DBNull.Value)
+                {
+                    DateTime dueDate = Convert.ToDateTime(dueDateObj);
+                    if (dueDate < DateTime.Today)
+                        return "fas fa-exclamation-triangle"; // overdue
+                    else if (dueDate <= DateTime.Today.AddDays(3))
+                        return "fas fa-hourglass-half"; // due soon
+                }
+                return "fas fa-book-reader"; // active
+            }
+            else
+            {
+                DateTime returnDate = Convert.ToDateTime(returnDateObj);
+                if (dueDateObj != DBNull.Value)
+                {
+                    DateTime dueDate = Convert.ToDateTime(dueDateObj);
+                    if (returnDate > dueDate)
+                        return "fas fa-clock"; // returned late
+                }
+                return "fas fa-check-circle"; // returned
             }
         }
 

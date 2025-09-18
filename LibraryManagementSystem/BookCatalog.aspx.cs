@@ -28,7 +28,6 @@ namespace LibraryManagementSystem
                 pnlGuestHeader.Visible = false;
                 lblUserName.Text = UserAuth.CurrentUserName ?? "User";
                 lnkMyBooks.NavigateUrl = "UserBorrowings.aspx";
-                lnkMyBooks.Text = "<i class='fas fa-list mr-2'></i>My Books";
             }
             else
             {
@@ -36,7 +35,6 @@ namespace LibraryManagementSystem
                 pnlUserHeader.Visible = false;
                 pnlGuestHeader.Visible = true;
                 lnkMyBooks.NavigateUrl = "UserLogin.aspx";
-                lnkMyBooks.Text = "<i class='fas fa-sign-in-alt mr-2'></i>Sign In";
             }
         }
 
@@ -121,6 +119,19 @@ namespace LibraryManagementSystem
             }
         }
 
+        protected void gvBooks_RowDataBound(object sender, System.Web.UI.WebControls.GridViewRowEventArgs e)
+        {
+            if (e.Row.RowType == System.Web.UI.WebControls.DataControlRowType.DataRow)
+            {
+                // Find the "My Books" link in this row and set its visibility
+                System.Web.UI.WebControls.HyperLink lnkMyBooks = e.Row.FindControl("lnkMyBooks") as System.Web.UI.WebControls.HyperLink;
+                if (lnkMyBooks != null)
+                {
+                    lnkMyBooks.Visible = UserAuth.IsUserLoggedIn;
+                }
+            }
+        }
+
         private void BorrowBook(int bookId)
         {
             try
@@ -170,24 +181,31 @@ namespace LibraryManagementSystem
         {
             int bookId = Convert.ToInt32(bookIdObj);
             bool isAvailable = borrowingDAL.IsBookAvailable(bookId);
-            return isAvailable ? "availability-badge available" : "availability-badge borrowed";
+            return isAvailable ? "availability-badge available" : "availability-badge unavailable";
         }
 
         protected string GetAvailabilityText(object bookIdObj)
         {
             int bookId = Convert.ToInt32(bookIdObj);
             bool isAvailable = borrowingDAL.IsBookAvailable(bookId);
-            return isAvailable ? "Available" : "Borrowed";
+            return isAvailable ? "Available" : "Currently Borrowed";
+        }
+
+        protected string GetAvailabilityIcon(object bookIdObj)
+        {
+            int bookId = Convert.ToInt32(bookIdObj);
+            bool isAvailable = borrowingDAL.IsBookAvailable(bookId);
+            return isAvailable ? "fas fa-check-circle" : "fas fa-clock";
         }
 
         protected string GetBorrowButtonClass(object bookIdObj)
         {
             if (!UserAuth.IsUserLoggedIn)
-                return "btn btn-sm btn-secondary";
+                return "action-btn login-required-btn";
 
             int bookId = Convert.ToInt32(bookIdObj);
             bool isAvailable = borrowingDAL.IsBookAvailable(bookId);
-            return isAvailable ? "btn btn-sm btn-success" : "btn btn-sm btn-secondary";
+            return isAvailable ? "action-btn borrow-btn" : "action-btn unavailable-btn";
         }
 
         protected string GetBorrowButtonText(object bookIdObj)
@@ -197,7 +215,17 @@ namespace LibraryManagementSystem
 
             int bookId = Convert.ToInt32(bookIdObj);
             bool isAvailable = borrowingDAL.IsBookAvailable(bookId);
-            return isAvailable ? "Borrow" : "Not Available";
+            return isAvailable ? "Borrow Book" : "Not Available";
+        }
+
+        protected string GetBorrowButtonIcon(object bookIdObj)
+        {
+            if (!UserAuth.IsUserLoggedIn)
+                return "fas fa-sign-in-alt";
+
+            int bookId = Convert.ToInt32(bookIdObj);
+            bool isAvailable = borrowingDAL.IsBookAvailable(bookId);
+            return isAvailable ? "fas fa-book-reader" : "fas fa-ban";
         }
 
         protected bool CanBorrowBook(object bookIdObj)

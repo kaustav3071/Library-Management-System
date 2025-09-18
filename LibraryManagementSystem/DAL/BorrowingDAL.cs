@@ -74,6 +74,25 @@ namespace LibraryManagementSystem.DAL
             }
         }
 
+        // Get all borrowings (for admin)
+        public DataTable GetAllBorrowings()
+        {
+            var dt = new DataTable();
+            using (var conn = new SqlConnection(connectionString))
+            using (var cmd = new SqlCommand(@"
+                SELECT b.*, u.Name as UserName, u.Email as UserEmail, bk.Title as BookTitle, bk.Author as BookAuthor
+                FROM Borrowings b
+                LEFT JOIN Users u ON b.UserId = u.Id
+                LEFT JOIN Members m ON b.MemberId = m.Id
+                LEFT JOIN Books bk ON b.BookId = bk.Id
+                ORDER BY b.BorrowDate DESC", conn))
+            using (var da = new SqlDataAdapter(cmd))
+            {
+                da.Fill(dt);
+            }
+            return dt;
+        }
+
         // Active borrowings (not returned yet)
         public DataTable GetActiveBorrowings()
         {
@@ -85,12 +104,39 @@ namespace LibraryManagementSystem.DAL
                 LEFT JOIN Users u ON b.UserId = u.Id
                 LEFT JOIN Members m ON b.MemberId = m.Id
                 LEFT JOIN Books bk ON b.BookId = bk.Id
-                WHERE b.ReturnDate IS NULL", conn))
+                WHERE b.ReturnDate IS NULL
+                ORDER BY b.BorrowDate DESC", conn))
             using (var da = new SqlDataAdapter(cmd))
             {
                 da.Fill(dt);
             }
             return dt;
+        }
+
+        // Returned borrowings (already returned)
+        public DataTable GetReturnedBorrowings()
+        {
+            var dt = new DataTable();
+            using (var conn = new SqlConnection(connectionString))
+            using (var cmd = new SqlCommand(@"
+                SELECT b.*, u.Name as UserName, u.Email as UserEmail, bk.Title as BookTitle, bk.Author as BookAuthor
+                FROM Borrowings b
+                LEFT JOIN Users u ON b.UserId = u.Id
+                LEFT JOIN Members m ON b.MemberId = m.Id
+                LEFT JOIN Books bk ON b.BookId = bk.Id
+                WHERE b.ReturnDate IS NOT NULL
+                ORDER BY b.ReturnDate DESC", conn))
+            using (var da = new SqlDataAdapter(cmd))
+            {
+                da.Fill(dt);
+            }
+            return dt;
+        }
+
+        // Overdue borrowings (no parameters - current date)
+        public DataTable GetOverdueBorrowings()
+        {
+            return GetOverdueBorrowings(DateTime.Today);
         }
 
         // All borrowings for a given user
@@ -202,7 +248,8 @@ namespace LibraryManagementSystem.DAL
                 LEFT JOIN Users u ON b.UserId = u.Id
                 LEFT JOIN Members m ON b.MemberId = m.Id
                 INNER JOIN Books bk ON b.BookId = bk.Id
-                WHERE b.DueDate IS NOT NULL AND b.DueDate < @AsOf AND b.ReturnDate IS NULL", conn))
+                WHERE b.DueDate IS NOT NULL AND b.DueDate < @AsOf AND b.ReturnDate IS NULL
+                ORDER BY b.DueDate ASC", conn))
             using (var da = new SqlDataAdapter(cmd))
             {
                 cmd.Parameters.AddWithValue("@AsOf", asOf);
@@ -219,7 +266,8 @@ namespace LibraryManagementSystem.DAL
             using (var cmd = new SqlCommand(@"
                 SELECT 
                     (SELECT COUNT(*) FROM Borrowings WHERE ReturnDate IS NULL) as ActiveBorrowings,
-                    (SELECT COUNT(*) FROM Borrowings WHERE ReturnDate IS NOT NULL) as CompletedBorrowings,
+                    (SELECT COUNT(*) FROM Borrowings) as TotalBorrowings,
+                    (SELECT COUNT(*) FROM Borrowings WHERE ReturnDate IS NOT NULL) as ReturnedBooks,
                     (SELECT COUNT(*) FROM Borrowings WHERE DueDate < GETDATE() AND ReturnDate IS NULL) as OverdueBorrowings", conn))
             using (var da = new SqlDataAdapter(cmd))
             {

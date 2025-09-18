@@ -104,6 +104,7 @@
     <Content Include="Books.aspx" />
     <Content Include="Borrowings.aspx" />
     <Content Include="Content\admin-login.css" />
+    <Content Include="Content\admin-professional.css" />
     <Content Include="Content\auth-layout-fixed.css" />
     <Content Include="Content\book-catalog.css" />
     <Content Include="Content\books-modern.css" />
@@ -124,12 +125,14 @@
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\borrowings-modern.css" />
+    <Content Include="Content\catalog-professional.css" />
     <Content Include="Content\members-modern.css" />
     <Content Include="Content\professional-auth.css" />
     <Content Include="Content\Site.css" />
     <Content Include="Content\user-auth.css" />
     <Content Include="Content\user-borrowings.css" />
     <Content Include="Content\welcome-modern.css" />
+    <Content Include="Content\welcome-professional.css" />
     <Content Include="Database\CompleteSchemaSetup.sql" />
     <Content Include="Database\CreateUserTables.sql" />
     <Content Include="Database\FixBorrowingsTable.sql" />
@@ -171,7 +174,6 @@
     <Content Include="UserRegister.aspx" />
     <Content Include="Welcome.aspx" />
     <Content Include=".env" />
-    <Content Include="ADMIN_README.md" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
@@ -295,7 +297,6 @@
     <None Include="packages.config" />
     <Content Include="Scripts\jquery-3.7.0.slim.min.map" />
     <Content Include="Scripts\jquery-3.7.0.min.map" />
-    <Content Include="USER_SYSTEM_README.md" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
